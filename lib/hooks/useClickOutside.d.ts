@@ -46,4 +46,4 @@
  *
  * To solve this issue onClickCapture event is used.
  */
-export declare function useClickOutside(onClickOutside: () => void): () => void;
+export declare function useClickOutside(onClick: () => void): () => void;

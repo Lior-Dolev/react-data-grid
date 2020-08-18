@@ -1,5 +1,5 @@
-import { CalculatedColumn, Omit, SharedEditorContainerProps } from '../types';
-export interface EditorContainerProps<R, SR> extends Omit<SharedEditorContainerProps, 'editorPortalTarget'> {
+import { CalculatedColumn, SharedEditorContainerProps } from '../types';
+export interface EditorContainerProps<R, SR> extends SharedEditorContainerProps {
     rowIdx: number;
     row: R;
     column: CalculatedColumn<R, SR>;

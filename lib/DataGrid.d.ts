@@ -1,14 +1,15 @@
-import React from 'react';
-import { CalculatedColumn, CheckCellIsEditableEvent, Column, Filters, Position, RowRendererProps, RowsUpdateEvent } from './types';
-import { CellNavigationMode, SortDirection } from './enums';
-declare type DefaultColumnOptions<R, SR> = Pick<Column<R, SR>, 'formatter' | 'minWidth' | 'resizable' | 'sortable'>;
+import React from "react";
+import { CalculatedColumn, CheckCellIsEditableEvent, Column, Filters, Position, RowRendererProps, RowsUpdateEvent } from "./types";
+import { CellNavigationMode, SortDirection } from "./enums";
+declare type DefaultColumnOptions<R, SR> = Pick<Column<R, SR>, "formatter" | "minWidth" | "resizable" | "sortable">;
 export interface DataGridHandle {
     scrollToColumn: (colIdx: number) => void;
     scrollToRow: (rowIdx: number) => void;
     selectCell: (position: Position, openEditor?: boolean) => void;
     deselectCell: () => void;
+    commitChanges: () => void;
 }
-declare type SharedDivProps = Pick<React.HTMLAttributes<HTMLDivElement>, 'aria-label' | 'aria-labelledby' | 'aria-describedby'>;
+declare type SharedDivProps = Pick<React.HTMLAttributes<HTMLDivElement>, "aria-label" | "aria-labelledby" | "aria-describedby">;
 export interface DataGridProps<R, K extends keyof R, SR = unknown> extends SharedDivProps {
     /**
      * Grid and data Props
@@ -33,6 +34,7 @@ export interface DataGridProps<R, K extends keyof R, SR = unknown> extends Share
      * 4. Update all cells under a given cell by double clicking the cell's fill handle.
      */
     onRowsUpdate?: <E extends RowsUpdateEvent>(event: E) => void;
+    onRowsChange?: (rows: R[]) => void;
     /**
      * Dimensions props
      */
