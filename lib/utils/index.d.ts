@@ -1,6 +1,5 @@
 export * from './domUtils';
 export * from './columnUtils';
-export * from './viewportUtils';
 export * from './keyboardUtils';
 export * from './selectedCellUtils';
 export declare function assertIsValidKey<R>(key: unknown): asserts key is keyof R;

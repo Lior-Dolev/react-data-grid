@@ -1,5 +1,5 @@
 import React from "react";
-import { CalculatedColumn, CheckCellIsEditableEvent, Column, Filters, Position, RowRendererProps, RowsUpdateEvent } from "./types";
+import { CalculatedColumn, CheckCellIsEditableEvent, Column, Filters, Position, RowRendererProps, RowsUpdateEvent, Dictionary } from "./types";
 import { CellNavigationMode, SortDirection } from "./enums";
 declare type DefaultColumnOptions<R, SR> = Pick<Column<R, SR>, "formatter" | "minWidth" | "resizable" | "sortable">;
 export interface DataGridHandle {
@@ -7,9 +7,8 @@ export interface DataGridHandle {
     scrollToRow: (rowIdx: number) => void;
     selectCell: (position: Position, openEditor?: boolean) => void;
     deselectCell: () => void;
-    commitChanges: () => void;
 }
-declare type SharedDivProps = Pick<React.HTMLAttributes<HTMLDivElement>, "aria-label" | "aria-labelledby" | "aria-describedby">;
+declare type SharedDivProps = Pick<React.HTMLAttributes<HTMLDivElement>, "aria-label" | "aria-labelledby" | "aria-describedby" | "className" | "style">;
 export interface DataGridProps<R, K extends keyof R, SR = unknown> extends SharedDivProps {
     /**
      * Grid and data Props
@@ -38,10 +37,6 @@ export interface DataGridProps<R, K extends keyof R, SR = unknown> extends Share
     /**
      * Dimensions props
      */
-    /** The width of the grid in pixels */
-    width?: number;
-    /** The height of the grid in pixels */
-    height?: number;
     /** The height of each row in pixels */
     rowHeight?: number;
     /** The height of the header row in pixels */
@@ -64,6 +59,10 @@ export interface DataGridProps<R, K extends keyof R, SR = unknown> extends Share
     filters?: Filters;
     onFiltersChange?: (filters: Filters) => void;
     defaultColumnOptions?: DefaultColumnOptions<R, SR>;
+    groupBy?: readonly string[];
+    rowGrouper?: (rows: readonly R[], columnKey: string) => Dictionary<readonly R[]>;
+    expandedGroupIds?: ReadonlySet<unknown>;
+    onExpandedGroupIdsChange?: (expandedGroupIds: Set<unknown>) => void;
     /**
      * Custom renderers
      */
@@ -97,7 +96,5 @@ export interface DataGridProps<R, K extends keyof R, SR = unknown> extends Share
     editorPortalTarget?: Element;
     rowClass?: (row: R) => string | undefined;
 }
-declare const _default: <R, K extends keyof R, SR = unknown>(props: DataGridProps<R, K, SR> & {
-    ref?: ((instance: DataGridHandle | null) => void) | React.RefObject<DataGridHandle> | null | undefined;
-}) => JSX.Element;
+declare const _default: <R, K extends keyof R, SR = unknown>(props: DataGridProps<R, K, SR> & React.RefAttributes<DataGridHandle>) => JSX.Element;
 export default _default;

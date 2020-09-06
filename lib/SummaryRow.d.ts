@@ -1,5 +1,5 @@
 import { RowRendererProps } from './types';
-declare type SharedRowRendererProps<R, SR> = Pick<RowRendererProps<R, SR>, 'viewportColumns' | 'rowIdx' | 'lastFrozenColumnIndex'>;
+declare type SharedRowRendererProps<R, SR> = Pick<RowRendererProps<R, SR>, 'viewportColumns' | 'rowIdx'>;
 interface SummaryRowProps<R, SR> extends SharedRowRendererProps<R, SR> {
     'aria-rowindex': number;
     row: SR;
