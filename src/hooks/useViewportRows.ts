@@ -1,19 +1,19 @@
 import { useMemo } from 'react';
+import type { GroupRow, GroupByDictionary } from '../types';
 
-import { GroupRow, GroupByDictionary, Dictionary } from '../types';
 const RENDER_BACTCH_SIZE = 8;
 
-interface ViewportRowsArgs<R, SR> {
+interface ViewportRowsArgs<R> {
   rawRows: readonly R[];
   rowHeight: number;
   clientHeight: number;
   scrollTop: number;
   groupBy: readonly string[];
-  rowGrouper?: (rows: readonly R[], columnKey: string) => Dictionary<readonly R[]>;
+  rowGrouper?: (rows: readonly R[], columnKey: string) => Record<string, readonly R[]>;
   expandedGroupIds?: ReadonlySet<unknown>;
 }
 
-export function useViewportRows<R, SR>({
+export function useViewportRows<R>({
   rawRows,
   rowHeight,
   clientHeight,
@@ -21,7 +21,7 @@ export function useViewportRows<R, SR>({
   groupBy,
   rowGrouper,
   expandedGroupIds
-}: ViewportRowsArgs<R, SR>) {
+}: ViewportRowsArgs<R>) {
   const [groupedRows, rowsCount] = useMemo(() => {
     if (groupBy.length === 0 || !rowGrouper) return [undefined, rawRows.length];
 
@@ -57,7 +57,7 @@ export function useViewportRows<R, SR>({
         // TODO: should users have control over the generated key?
         const id = parentId !== undefined ? `${parentId}__${groupKey}` : groupKey;
         const isExpanded = expandedGroupIds?.has(id) ?? false;
-        const { childRows, childGroups, startRowIndex } = (rows as GroupByDictionary<R>)[groupKey]; // https://github.com/microsoft/TypeScript/issues/17002
+        const { childRows, childGroups, startRowIndex } = (rows as GroupByDictionary<R>)[groupKey]; // TODO (ts4.1): https://github.com/microsoft/TypeScript/issues/17002
 
         const groupRow: GroupRow<R> = {
           id,

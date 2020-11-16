@@ -1,10 +1,12 @@
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { groupBy as rowGrouper } from 'lodash';
-import Select, { components, ValueType, OptionsType, Props as SelectProps } from 'react-select';
+import Select, { components } from 'react-select';
+import type { ValueType, OptionsType, Props as SelectProps } from 'react-select';
 import { SortableContainer, SortableElement } from 'react-sortable-hoc';
 import faker from 'faker';
 
-import DataGrid, { Column, Row, SelectColumn } from '../../src';
+import DataGrid, { SelectColumn } from '../../src';
+import type { Column } from '../../src';
 import './Grouping.less';
 
 interface Row {
@@ -76,6 +78,10 @@ const columns: readonly Column<Row>[] = [
   }
 ];
 
+function rowKeyGetter(row: Row) {
+  return row.id;
+}
+
 function createRows(): readonly Row[] {
   const rows: Row[] = [];
   for (let i = 1; i < 10000; i++) {
@@ -113,9 +119,9 @@ const options: OptionsType<Option> = [
   { value: 'athlete', label: 'athlete' }
 ];
 
-export default function Grouping() {
+export function Grouping() {
   const [rows] = useState(createRows);
-  const [selectedRows, setSelectedRows] = useState(() => new Set<number>());
+  const [selectedRows, setSelectedRows] = useState(() => new Set<React.Key>());
   const [selectedOptions, setSelectedOptions] = useState<ValueType<Option>>([options[0], options[1]]);
   const [expandedGroupIds, setExpandedGroupIds] = useState(() => new Set<unknown>(['United States of America', 'United States of America__2015']));
 
@@ -154,7 +160,7 @@ export default function Grouping() {
         />
       </label>
       <DataGrid
-        rowKey="id"
+        rowKeyGetter={rowKeyGetter}
         columns={columns}
         rows={rows}
         selectedRows={selectedRows}
@@ -168,3 +174,5 @@ export default function Grouping() {
     </div>
   );
 }
+
+Grouping.storyName = 'Grouping';

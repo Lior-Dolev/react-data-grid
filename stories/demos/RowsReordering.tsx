@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 
 import { DraggableRowRenderer } from './components/RowRenderers';
-import DataGrid, { Column } from '../../src';
+import DataGrid from '../../src';
+import type { Column } from '../../src';
 
 interface Row {
   id: number;
@@ -52,7 +53,7 @@ const columns: readonly Column<Row>[] = [
   }
 ];
 
-export default function RowsReordering() {
+export function RowsReordering() {
   const [rows, setRows] = useState(createRows);
 
   function onRowReorder(fromIndex: number, toIndex: number) {
@@ -76,3 +77,5 @@ export default function RowsReordering() {
     </DndProvider>
   );
 }
+
+RowsReordering.storyName = 'Rows Reordering';

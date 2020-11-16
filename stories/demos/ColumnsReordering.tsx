@@ -1,9 +1,10 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 
 import { DraggableHeaderRenderer } from './components/HeaderRenderers';
-import DataGrid, { Column, HeaderRendererProps, SortDirection } from '../../src';
+import DataGrid from '../../src';
+import type { Column, HeaderRendererProps, SortDirection } from '../../src';
 
 interface Row {
   id: number;
@@ -62,7 +63,7 @@ function createColumns(): Column<Row>[] {
   ];
 }
 
-export default function ColumnsReordering() {
+export function ColumnsReordering() {
   const [rows] = useState(createRows);
   const [columns, setColumns] = useState(createColumns);
   const [[sortColumn, sortDirection], setSort] = useState<[string, SortDirection]>(['task', 'NONE']);
@@ -128,3 +129,5 @@ export default function ColumnsReordering() {
     </DndProvider>
   );
 }
+
+ColumnsReordering.storyName = 'Columns Reordering';

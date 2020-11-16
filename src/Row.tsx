@@ -1,15 +1,14 @@
-import React, { memo, forwardRef } from 'react';
+import { memo, forwardRef } from 'react';
 import clsx from 'clsx';
 
 import Cell from './Cell';
 import EditCell from './EditCell';
-import { RowRendererProps, SelectedCellProps } from './types';
+import type { RowRendererProps, SelectedCellProps } from './types';
 import { wrapEvent } from './utils';
 
 function Row<R, SR = unknown>({
   cellRenderer: CellRenderer = Cell,
   className,
-  eventBus,
   rowIdx,
   isRowSelected,
   copiedCellIdx,
@@ -22,6 +21,9 @@ function Row<R, SR = unknown>({
   setDraggedOverRowIdx,
   onMouseEnter,
   top,
+  onRowChange,
+  selectCell,
+  selectRow,
   'aria-rowindex': ariaRowIndex,
   'aria-selected': ariaSelected,
   ...props
@@ -61,9 +63,7 @@ function Row<R, SR = unknown>({
               column={column}
               row={row}
               onKeyDown={selectedCellProps.onKeyDown}
-              editorPortalTarget={selectedCellProps.editorPortalTarget}
-              editorContainerProps={selectedCellProps.editorContainerProps}
-              editor2Props={selectedCellProps.editor2Props}
+              editorProps={selectedCellProps.editorProps}
             />
           );
         }
@@ -78,11 +78,13 @@ function Row<R, SR = unknown>({
             isDraggedOver={draggedOverCellIdx === column.idx}
             isCellSelected={isCellSelected}
             isRowSelected={isRowSelected}
-            eventBus={eventBus}
             dragHandleProps={isCellSelected ? (selectedCellProps as SelectedCellProps).dragHandleProps : undefined}
             onFocus={isCellSelected ? (selectedCellProps as SelectedCellProps).onFocus : undefined}
             onKeyDown={isCellSelected ? selectedCellProps!.onKeyDown : undefined}
             onRowClick={onRowClick}
+            onRowChange={onRowChange}
+            selectCell={selectCell}
+            selectRow={selectRow}
           />
         );
       })}

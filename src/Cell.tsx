@@ -1,7 +1,7 @@
-import React, { forwardRef, memo, useRef } from 'react';
+import { forwardRef, memo, useRef } from 'react';
 import clsx from 'clsx';
 
-import { CellRendererProps } from './types';
+import type { CellRendererProps } from './types';
 import { wrapEvent } from './utils';
 import { useCombinedRefs } from './hooks';
 
@@ -14,14 +14,14 @@ function Cell<R, SR>({
   isRowSelected,
   row,
   rowIdx,
-  eventBus,
   dragHandleProps,
   onRowClick,
-  onFocus,
-  onKeyDown,
   onClick,
   onDoubleClick,
   onContextMenu,
+  onRowChange,
+  selectCell,
+  selectRow,
   ...props
 }: CellRendererProps<R, SR>, ref: React.Ref<HTMLDivElement>) {
   const cellRef = useRef<HTMLDivElement>(null);
@@ -40,25 +40,29 @@ function Cell<R, SR>({
     className
   );
 
-  function selectCell(openEditor?: boolean) {
-    eventBus.dispatch('SELECT_CELL', { idx: column.idx, rowIdx }, openEditor);
+  function selectCellWrapper(openEditor?: boolean) {
+    selectCell({ idx: column.idx, rowIdx }, openEditor);
   }
 
   function handleClick() {
-    selectCell(column.editorOptions?.editOnClick);
+    selectCellWrapper(column.editorOptions?.editOnClick);
     onRowClick?.(rowIdx, row, column);
   }
 
   function handleContextMenu() {
-    selectCell();
+    selectCellWrapper();
   }
 
   function handleDoubleClick() {
-    selectCell(true);
+    selectCellWrapper(true);
+  }
+
+  function handleRowChange(newRow: R) {
+    onRowChange(rowIdx, newRow);
   }
 
   function onRowSelectionChange(checked: boolean, isShiftClick: boolean) {
-    eventBus.dispatch('SELECT_ROW', { rowIdx, checked, isShiftClick });
+    selectRow({ rowIdx, checked, isShiftClick });
   }
 
   return (
@@ -72,8 +76,6 @@ function Cell<R, SR>({
         width: column.width,
         left: column.left
       }}
-      onFocus={onFocus}
-      onKeyDown={onKeyDown}
       onClick={wrapEvent(handleClick, onClick)}
       onDoubleClick={wrapEvent(handleDoubleClick, onDoubleClick)}
       onContextMenu={wrapEvent(handleContextMenu, onContextMenu)}
@@ -88,6 +90,7 @@ function Cell<R, SR>({
             isCellSelected={isCellSelected}
             isRowSelected={isRowSelected}
             onRowSelectionChange={onRowSelectionChange}
+            onRowChange={handleRowChange}
           />
           {dragHandleProps && (
             <div className="rdg-cell-drag-handle" {...dragHandleProps} />

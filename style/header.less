@@ -1,16 +1,12 @@
-@import './variables.less';
-
 .rdg-header-row,
 .rdg-filter-row {
   contain: strict;
   contain: size layout style paint;
   display: flex;
   width: var(--row-width);
-  position: -webkit-sticky;
   position: sticky;
   background-color: var(--header-background-color);
   font-weight: bold;
-  .user-select();
   z-index: 3;
 }
 
@@ -18,6 +14,7 @@
   height: var(--header-row-height);
   line-height: var(--header-row-height);
   top: 0;
+  touch-action: none;
 }
 
 .rdg-filter-row {
@@ -26,21 +23,14 @@
   top: var(--header-row-height);
 }
 
-// TODO: replace this with a pseudo-element once we drop support for Legacy Edge,
-// as `cursor` doesn't work on pseudo-elements on those browsers.
-.rdg-header-cell-resizer {
+.rdg-cell-resizable::after {
+  content: "";
   cursor: col-resize;
   position: absolute;
   top: 0;
   right: 0;
   bottom: 0;
   width: 10px;
-}
-
-.rdg-cell .Select {
-  max-height: 30px;
-  font-size: 12px;
-  font-weight: normal;
 }
 
 .rdg-header-sort-cell {

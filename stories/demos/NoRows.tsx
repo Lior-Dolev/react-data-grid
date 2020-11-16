@@ -1,5 +1,5 @@
-import React from 'react';
-import DataGrid, { Column } from '../../src';
+import DataGrid from '../../src';
+import type { Column } from '../../src';
 
 function EmptyRowsRenderer() {
   return <div style={{ textAlign: 'center' }}>Nothing to show <span lang="ja" title="ショボーン">(´・ω・`)</span></div>;
@@ -19,7 +19,7 @@ const columns: readonly Column<Row>[] = [
 
 const rows: readonly Row[] = [];
 
-export default function NoRows() {
+export function NoRows() {
   return (
     <DataGrid
       columns={columns}
@@ -29,3 +29,5 @@ export default function NoRows() {
     />
   );
 }
+
+NoRows.storyName = 'No Rows';

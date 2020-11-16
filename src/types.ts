@@ -1,13 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { KeyboardEvent } from 'react';
-import { UpdateActions } from './enums';
-import EventBus from './EventBus';
+import type { ReactElement } from 'react';
+import type { SortDirection } from './enums';
 
 export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
 
 export interface Column<TRow, TSummaryRow = unknown> {
   /** The name of the column. By default it will be displayed in the header cell */
-  name: string;
+  name: string | ReactElement;
   /** A unique key to distinguish each column */
   key: string;
   /** Column width. If not specified, it will be determined automatically based on grid width and specified widths of other columns */
@@ -16,7 +15,7 @@ export interface Column<TRow, TSummaryRow = unknown> {
   minWidth?: number;
   /** Maximum column width in px. */
   maxWidth?: number;
-  cellClass?: string | ((row: TRow) => string);
+  cellClass?: string | ((row: TRow) => string | undefined);
   headerCellClass?: string;
   summaryCellClass?: string | ((row: TSummaryRow) => string);
   /** Formatter to be used to render the cell content */
@@ -36,18 +35,19 @@ export interface Column<TRow, TSummaryRow = unknown> {
   /** Sets the column sort order to be descending instead of ascending the first time the column is sorted */
   sortDescendingFirst?: boolean;
   /** Editor to be rendered when cell of column is being edited. If set, then the column is automatically set to be editable */
-  editor?: React.ComponentType<EditorProps<TRow[keyof TRow], TRow, TSummaryRow>>;
-  editor2?: React.ComponentType<Editor2Props<TRow, TSummaryRow>>;
+  editor?: React.ComponentType<EditorProps<TRow, TSummaryRow>>;
   editorOptions?: {
-    /** Default: true for editor1 and false for editor2 */
+    /** @default false */
     createPortal?: boolean;
-    /** Default: false */
+    /** @default false */
     editOnClick?: boolean;
     /** Prevent default to cancel editing */
     onCellKeyDown?: (event: React.KeyboardEvent<HTMLDivElement>) => void;
+    /** Control the default cell navigation behavior while the editor is open */
+    onNavigation?: (event: React.KeyboardEvent<HTMLDivElement>) => boolean;
     // TODO: Do we need these options
     // editOnDoubleClick?: boolean;
-    /** Default: true for editor1 and false for editor2 */
+    /** @default false */
     // commitOnScroll?: boolean;
   };
   /** Header renderer for each header cell */
@@ -72,15 +72,6 @@ export interface Position {
   rowIdx: number;
 }
 
-export interface Editor<TValue = never> {
-  getInputNode: () => Element | Text | undefined | null;
-  getValue: () => TValue;
-  hasResults?: () => boolean;
-  isSelectOpen?: () => boolean;
-  validate?: (value: unknown) => boolean;
-  readonly disableContainerStyles?: boolean;
-}
-
 export interface FormatterProps<TRow = any, TSummaryRow = any> {
   rowIdx: number;
   column: CalculatedColumn<TRow, TSummaryRow>;
@@ -88,6 +79,7 @@ export interface FormatterProps<TRow = any, TSummaryRow = any> {
   isCellSelected: boolean;
   isRowSelected: boolean;
   onRowSelectionChange: (checked: boolean, isShiftClick: boolean) => void;
+  onRowChange: (row: Readonly<TRow>) => void;
 }
 
 export interface SummaryFormatterProps<TSummaryRow, TRow = any> {
@@ -106,45 +98,28 @@ export interface GroupFormatterProps<TRow, TSummaryRow = unknown> {
   toggleGroup: () => void;
 }
 
-export interface EditorProps<TValue, TRow = any, TSummaryRow = any> {
-  ref: React.Ref<Editor<{ [key: string]: TValue }>>;
-  column: CalculatedColumn<TRow, TSummaryRow>;
-  value: TValue;
-  row: TRow;
-  height: number;
-  onCommit: () => void;
-  onCommitCancel: () => void;
-  onOverrideKeyDown: (e: KeyboardEvent) => void;
-}
-
-export interface SharedEditor2Props<TRow> {
+export interface SharedEditorProps<TRow> {
   row: Readonly<TRow>;
   rowHeight: number;
+  editorPortalTarget: Element;
   onRowChange: (row: Readonly<TRow>, commitChanges?: boolean) => void;
   onClose: (commitChanges?: boolean) => void;
 }
 
-export interface Editor2Props<TRow, TSummaryRow = unknown> extends SharedEditor2Props<TRow> {
+export interface EditorProps<TRow, TSummaryRow = unknown> extends SharedEditorProps<TRow> {
   rowIdx: number;
   column: Readonly<CalculatedColumn<TRow, TSummaryRow>>;
   top: number;
   left: number;
-  editorPortalTarget: Element;
 }
 
 export interface HeaderRendererProps<TRow, TSummaryRow = unknown> {
   column: CalculatedColumn<TRow, TSummaryRow>;
+  sortColumn?: string;
+  sortDirection?: SortDirection;
+  onSort?: (columnKey: string, direction: SortDirection) => void;
   allRowsSelected: boolean;
   onAllRowsSelectionChange: (checked: boolean) => void;
-}
-
-export interface SharedEditorContainerProps {
-  firstEditorKeyPress: string | null;
-  scrollLeft: number;
-  scrollTop: number;
-  rowHeight: number;
-  onCommit: (e: CommitEvent) => void;
-  onCommitCancel: () => void;
 }
 
 interface SelectedCellPropsBase {
@@ -154,9 +129,7 @@ interface SelectedCellPropsBase {
 
 export interface EditCellProps<TRow> extends SelectedCellPropsBase {
   mode: 'EDIT';
-  editorPortalTarget: Element;
-  editorContainerProps: SharedEditorContainerProps;
-  editor2Props: SharedEditor2Props<TRow>;
+  editorProps: SharedEditorProps<TRow>;
 }
 
 export interface SelectedCellProps extends SelectedCellPropsBase {
@@ -173,9 +146,11 @@ export interface CellRendererProps<TRow, TSummaryRow = unknown> extends Omit<Rea
   isDraggedOver: boolean;
   isCellSelected: boolean;
   isRowSelected: boolean;
-  eventBus: EventBus;
   dragHandleProps?: Pick<React.HTMLAttributes<HTMLDivElement>, 'onMouseDown' | 'onDoubleClick'>;
+  onRowChange: (rowIdx: number, newRow: TRow) => void;
   onRowClick?: (rowIdx: number, row: TRow, column: CalculatedColumn<TRow, TSummaryRow>) => void;
+  selectCell: (position: Position, enableEditor?: boolean) => void;
+  selectRow: (selectRowEvent: SelectRowEvent) => void;
 }
 
 export interface RowRendererProps<TRow, TSummaryRow = unknown> extends Omit<React.HTMLAttributes<HTMLDivElement>, 'style' | 'children'> {
@@ -186,26 +161,14 @@ export interface RowRendererProps<TRow, TSummaryRow = unknown> extends Omit<Reac
   copiedCellIdx?: number;
   draggedOverCellIdx?: number;
   isRowSelected: boolean;
-  eventBus: EventBus;
   top: number;
   selectedCellProps?: EditCellProps<TRow> | SelectedCellProps;
+  onRowChange: (rowIdx: number, row: TRow) => void;
   onRowClick?: (rowIdx: number, row: TRow, column: CalculatedColumn<TRow, TSummaryRow>) => void;
   rowClass?: (row: TRow) => string | undefined;
   setDraggedOverRowIdx?: (overRowIdx: number) => void;
-}
-
-export interface GroupRowRendererProps<TRow, TSummaryRow = unknown> extends Omit<React.HTMLAttributes<HTMLDivElement>, 'style' | 'children'> {
-  id: string;
-  groupKey: unknown;
-  viewportColumns: readonly CalculatedColumn<TRow, TSummaryRow>[];
-  childRows: readonly TRow[];
-  rowIdx: number;
-  top: number;
-  level: number;
-  selectedCellIdx?: number;
-  isExpanded: boolean;
-  isRowSelected: boolean;
-  eventBus: EventBus;
+  selectCell: (position: Position, enableEditor?: boolean) => void;
+  selectRow: (selectRowEvent: SelectRowEvent) => void;
 }
 
 export interface FilterRendererProps<TRow, TFilterValue = unknown, TSummaryRow = unknown> {
@@ -216,35 +179,26 @@ export interface FilterRendererProps<TRow, TFilterValue = unknown, TSummaryRow =
 
 export type Filters = Record<string, any>;
 
-export interface CommitEvent<TUpdatedValue = never> {
-  cellKey: string;
-  rowIdx: number;
-  updated: TUpdatedValue;
-}
-
-export interface RowsUpdateEvent<TUpdatedValue = never> {
-  cellKey: string;
-  fromRow: number;
-  toRow: number;
-  updated: TUpdatedValue;
-  action: UpdateActions;
-  fromCellKey?: string;
-}
-
-export interface CheckCellIsEditableEvent<TRow, TSummaryRow> extends Position {
-  row: TRow;
-  column: CalculatedColumn<TRow, TSummaryRow>;
-}
-
 export interface SelectRowEvent {
   rowIdx: number;
   checked: boolean;
   isShiftClick: boolean;
 }
 
-export type Dictionary<T> = Record<string, T>;
+export interface FillEvent<TRow> {
+  columnKey: string;
+  sourceRow: TRow;
+  targetRows: TRow[];
+}
 
-export type GroupByDictionary<TRow> = Dictionary<{
+export interface PasteEvent<TRow> {
+  sourceColumnKey: string;
+  sourceRow: TRow;
+  targetColumnKey: string;
+  targetRow: TRow;
+}
+
+export type GroupByDictionary<TRow> = Record<string, {
   childRows: readonly TRow[];
   childGroups: readonly TRow[] | GroupByDictionary<TRow>;
   startRowIndex: number;

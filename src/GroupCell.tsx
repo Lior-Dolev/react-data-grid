@@ -1,6 +1,8 @@
-import React, { memo } from 'react';
+import { memo } from 'react';
 import clsx from 'clsx';
-import { GroupRowRendererProps, CalculatedColumn } from './types';
+
+import type { CalculatedColumn } from './types';
+import type { GroupRowRendererProps } from './GroupRow';
 
 type SharedGroupRowRendererProps<R, SR> = Pick<GroupRowRendererProps<R, SR>,
   | 'id'
@@ -9,7 +11,8 @@ type SharedGroupRowRendererProps<R, SR> = Pick<GroupRowRendererProps<R, SR>,
   | 'childRows'
   | 'isExpanded'
   | 'isRowSelected'
-  | 'eventBus'
+  | 'selectRow'
+  | 'toggleGroup'
 >;
 
 interface GroupCellProps<R, SR> extends SharedGroupRowRendererProps<R, SR> {
@@ -26,16 +29,17 @@ function GroupCell<R, SR>({
   isExpanded,
   isCellSelected,
   isRowSelected,
-  eventBus,
   column,
-  groupColumnIndex
+  groupColumnIndex,
+  selectRow,
+  toggleGroup: toggleGroupWrapper
 }: GroupCellProps<R, SR>) {
   function toggleGroup() {
-    eventBus.dispatch('TOGGLE_GROUP', id);
+    toggleGroupWrapper(id);
   }
 
   function onRowSelectionChange(checked: boolean) {
-    eventBus.dispatch('SELECT_ROW', { rowIdx, checked, isShiftClick: false });
+    selectRow({ rowIdx, checked, isShiftClick: false });
   }
 
   // Only make the cell clickable if the group level matches

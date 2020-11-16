@@ -1,7 +1,8 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import faker from 'faker';
-import DataGrid, { SelectColumn, Column, RowsUpdateEvent, SortDirection } from '../../src';
-import { TextEditor } from './components/Editors/TextEditor';
+import DataGrid, { SelectColumn, TextEditor, SelectCellFormatter } from '../../src';
+import type { Column, SortDirection } from '../../src';
+import { stopPropagation } from '../../src/utils';
 import { SelectEditor } from './components/Editors/SelectEditor';
 
 const dateFormatter = new Intl.DateTimeFormat(navigator.language);
@@ -59,8 +60,8 @@ function getColumns(countries: string[]): readonly Column<Row, SummaryRow>[] {
       key: 'title',
       name: 'Task',
       width: 120,
-      editable: true,
       frozen: true,
+      editor: TextEditor,
       summaryFormatter({ row }) {
         return <>{row.totalCount} records</>;
       }
@@ -69,19 +70,19 @@ function getColumns(countries: string[]): readonly Column<Row, SummaryRow>[] {
       key: 'client',
       name: 'Client',
       width: 220,
-      editable: true
+      editor: TextEditor
     },
     {
       key: 'area',
       name: 'Area',
       width: 120,
-      editable: true
+      editor: TextEditor
     },
     {
       key: 'country',
       name: 'Country',
       width: 180,
-      editor2: p => (
+      editor: p => (
         <SelectEditor
           value={p.row.country}
           onChange={value => p.onRowChange({ ...p.row, country: value }, true)}
@@ -95,19 +96,13 @@ function getColumns(countries: string[]): readonly Column<Row, SummaryRow>[] {
       key: 'contact',
       name: 'Contact',
       width: 160,
-      editor2: p => (
-        <TextEditor
-          value={p.row.contact}
-          onChange={value => p.onRowChange({ ...p.row, contact: value })}
-          rowHeight={p.rowHeight}
-        />
-      )
+      editor: TextEditor
     },
     {
       key: 'assignee',
       name: 'Assignee',
       width: 150,
-      editable: true
+      editor: TextEditor
     },
     {
       key: 'progress',
@@ -158,14 +153,24 @@ function getColumns(countries: string[]): readonly Column<Row, SummaryRow>[] {
     {
       key: 'version',
       name: 'Version',
-      editable: true
+      editor: TextEditor
     },
     {
       key: 'available',
       name: 'Available',
       width: 80,
-      formatter(props) {
-        return <>{props.row.available ? '✔️' : '❌'}</>;
+      formatter({ row, onRowChange, isCellSelected }) {
+        return (
+          <SelectCellFormatter
+            tabIndex={-1}
+            value={row.available}
+            onChange={() => {
+              onRowChange({ ...row, available: !row.available });
+            }}
+            onClick={stopPropagation}
+            isCellSelected={isCellSelected}
+          />
+        );
       },
       summaryFormatter({ row: { yesCount, totalCount } }) {
         return (
@@ -174,6 +179,10 @@ function getColumns(countries: string[]): readonly Column<Row, SummaryRow>[] {
       }
     }
   ];
+}
+
+function rowKeyGetter(row: Row) {
+  return row.id;
 }
 
 function createRows(): readonly Row[] {
@@ -203,10 +212,10 @@ function createRows(): readonly Row[] {
   return rows;
 }
 
-export default function CommonFeatures() {
+export function CommonFeatures() {
   const [rows, setRows] = useState(createRows);
   const [[sortColumn, sortDirection], setSort] = useState<[string, SortDirection]>(['id', 'NONE']);
-  const [selectedRows, setSelectedRows] = useState(() => new Set<number>());
+  const [selectedRows, setSelectedRows] = useState(() => new Set<React.Key>());
 
   const countries = useMemo(() => {
     return [...new Set(rows.map(r => r.country))].sort();
@@ -252,23 +261,13 @@ export default function CommonFeatures() {
     return sortDirection === 'DESC' ? sortedRows.reverse() : sortedRows;
   }, [rows, sortDirection, sortColumn]);
 
-  const handleRowsUpdate = useCallback(({ fromRow, toRow, updated }: RowsUpdateEvent<Partial<Row>>) => {
-    const newRows = [...sortedRows];
-
-    for (let i = fromRow; i <= toRow; i++) {
-      newRows[i] = { ...newRows[i], ...updated };
-    }
-
-    setRows(newRows);
-  }, [sortedRows]);
-
   const handleSort = useCallback((columnKey: string, direction: SortDirection) => {
     setSort([columnKey, direction]);
   }, []);
 
   return (
     <DataGrid
-      rowKey="id"
+      rowKeyGetter={rowKeyGetter}
       columns={columns}
       rows={sortedRows}
       defaultColumnOptions={{
@@ -277,7 +276,6 @@ export default function CommonFeatures() {
       }}
       selectedRows={selectedRows}
       onSelectedRowsChange={setSelectedRows}
-      onRowsUpdate={handleRowsUpdate}
       onRowsChange={setRows}
       sortColumn={sortColumn}
       sortDirection={sortDirection}
@@ -287,3 +285,5 @@ export default function CommonFeatures() {
     />
   );
 }
+
+CommonFeatures.storyName = 'Common Features';

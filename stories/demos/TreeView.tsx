@@ -1,6 +1,7 @@
-import React, { useState, useReducer, useMemo } from 'react';
+import { useState, useReducer, useMemo } from 'react';
 
-import DataGrid, { Column } from '../../src';
+import DataGrid from '../../src';
+import type { Column } from '../../src';
 import { CellExpanderFormatter, ChildRowDeleteButton } from './components/Formatters';
 
 interface Row {
@@ -89,7 +90,7 @@ function reducer(rows: Row[], { type, id }: Action): Row[] {
 
 const defaultRows = createRows();
 
-export default function TreeView() {
+export function TreeView() {
   const [rows, dispatch] = useReducer(reducer, defaultRows);
   const [allowDelete, setAllowDelete] = useState(true);
   const columns: Column<Row>[] = useMemo(() => {
@@ -163,3 +164,5 @@ export default function TreeView() {
     </>
   );
 }
+
+TreeView.storyName = 'Tree View';

@@ -1,6 +1,5 @@
-import React from 'react';
-import { HeaderCellProps } from '../HeaderCell';
-import { SortDirection } from '../enums';
+import type { HeaderCellProps } from '../HeaderCell';
+import type { SortDirection } from '../enums';
 
 const SORT_TEXT = {
   ASC: '\u25B2',
@@ -15,7 +14,7 @@ type SharedHeaderCellProps<R, SR> = Pick<HeaderCellProps<R, SR>,
   | 'onSort'
 >;
 
-export interface Props<R, SR> extends SharedHeaderCellProps<R, SR> {
+interface Props<R, SR> extends SharedHeaderCellProps<R, SR> {
   children: React.ReactNode;
 }
 
@@ -29,7 +28,7 @@ export default function SortableHeaderCell<R, SR>({
   sortDirection = sortColumn === column.key && sortDirection || 'NONE';
   function onClick() {
     if (!onSort) return;
-    const sortDescendingFirst = column.sortDescendingFirst || false;
+    const { sortDescendingFirst } = column;
     let direction: SortDirection;
     switch (sortDirection) {
       case 'ASC':

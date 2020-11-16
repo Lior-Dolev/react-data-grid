@@ -1,8 +1,9 @@
-import React, { useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import Select from 'react-select';
 import faker from 'faker';
 
-import DataGrid, { Column, Filters } from '../../src';
+import DataGrid from '../../src';
+import type { Column, Filters } from '../../src';
 import { NumericFilter } from './components/Filters';
 import './HeaderFilters.less';
 
@@ -30,7 +31,7 @@ function createRows() {
   return rows;
 }
 
-export default function HeaderFilters() {
+export function HeaderFilters() {
   const [rows] = useState(createRows);
   const [filters, setFilters] = useState<Filters>({
     task: '',
@@ -39,7 +40,7 @@ export default function HeaderFilters() {
     developer: '',
     complete: ''
   });
-  const [enableFilters, setEnableFilters] = useState(true);
+  const [enableFilterRow, setEnableFilterRow] = useState(true);
 
   const columns = useMemo((): Column<Row>[] => {
     const developerOptions = Array.from(new Set(rows.map(r => r.developer))).map(d => ({
@@ -158,7 +159,7 @@ export default function HeaderFilters() {
   }
 
   function toggleFilters() {
-    setEnableFilters(!enableFilters);
+    setEnableFilterRow(!enableFilterRow);
   }
 
   return (
@@ -171,10 +172,12 @@ export default function HeaderFilters() {
       <DataGrid
         columns={columns}
         rows={filteredRows}
-        enableFilters={enableFilters}
+        enableFilterRow={enableFilterRow}
         filters={filters}
         onFiltersChange={setFilters}
       />
     </div>
   );
 }
+
+HeaderFilters.storyName = 'Header Filters';

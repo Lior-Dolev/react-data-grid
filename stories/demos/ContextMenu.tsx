@@ -1,9 +1,10 @@
-import React, { useState, useReducer } from 'react';
+import { useState, useReducer } from 'react';
 import { createPortal } from 'react-dom';
 import faker from 'faker';
 import { ContextMenu, MenuItem, SubMenu, ContextMenuTrigger } from 'react-contextmenu';
 
-import DataGrid, { Column, Row as GridRow, RowRendererProps } from '../../src';
+import DataGrid, { Row as GridRow } from '../../src';
+import type { Column, RowRendererProps } from '../../src';
 import './react-contextmenu.less';
 
 interface Row {
@@ -30,6 +31,10 @@ const columns: readonly Column<Row>[] = [
   { key: 'price', name: 'Price' }
 ];
 
+function rowKeyGetter(row: Row) {
+  return row.id;
+}
+
 function RowRenderer(props: RowRendererProps<Row>) {
   return (
     <ContextMenuTrigger id="grid-context-menu" collect={() => ({ rowIdx: props.rowIdx })}>
@@ -38,7 +43,7 @@ function RowRenderer(props: RowRendererProps<Row>) {
   );
 }
 
-export default function ContextMenuStory() {
+export function ContextMenuStory() {
   const [rows, setRows] = useState(createRows);
   const [nextId, setNextId] = useReducer((id: number) => id + 1, rows[rows.length - 1].id + 1);
 
@@ -75,7 +80,7 @@ export default function ContextMenuStory() {
   return (
     <>
       <DataGrid
-        rowKey="id"
+        rowKeyGetter={rowKeyGetter}
         columns={columns}
         rows={rows}
         rowRenderer={RowRenderer}
@@ -94,3 +99,5 @@ export default function ContextMenuStory() {
     </>
   );
 }
+
+ContextMenuStory.storyName = 'Context Menu';

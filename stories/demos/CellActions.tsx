@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import faker from 'faker';
 
-import DataGrid, { Column } from '../../src';
+import DataGrid from '../../src';
+import type { Column } from '../../src';
 import { CellActionsFormatter, ImageFormatter } from './components/Formatters';
 
 faker.locale = 'en_GB';
@@ -143,11 +144,11 @@ const columns: Column<Row>[] = [
   }
 ];
 
-export default function CellActions() {
+export function CellActions() {
   const [rows] = useState(createRows);
 
   return (
-    <DataGrid<Row, 'id'>
+    <DataGrid
       columns={columns}
       rows={rows}
       rowHeight={55}
@@ -155,3 +156,5 @@ export default function CellActions() {
     />
   );
 }
+
+CellActions.storyName = 'Cell Actions';
